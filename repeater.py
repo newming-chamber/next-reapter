@@ -75,7 +75,6 @@ def upload_file_to_s3(file_name, object_name):
     bucket = env["S3_BUCKET"]
     try:
         s3.upload_file(file_name, bucket, object_name)
-        print("File", file_name, "uploaded to s3 as", object_name)
     except Exception as e:
         print(e)
         return False
@@ -100,15 +99,17 @@ def process_files(press_name):
 
         origin_file_exist = os.path.exists(destination_path)
 
-        if not origin_file_exist:
+        modifited_time = os.stat(source_path).st_mtime
+        now = datetime.now(kst).timestamp()
+        if not origin_file_exist and (now - modifited_time) < 60 * 10:
             copy2(source_path, destination_path)
-            print("File", filename, "copied")
-            modifited_time = os.stat(source_path).st_mtime
-            now = datetime.now(kst).timestamp()
-            print(now)
-            if (now - modifited_time) < 60 * 10:
-                object_name = f"origin_news/{press_name}/{filename}"
-                upload_file_to_s3(os.path.join(destination_path), object_name)
+
+            print("COPY", filename)
+
+            object_name = f"origin_news/{press_name}/{filename}"
+            upload_file_to_s3(os.path.join(destination_path), object_name)
+
+            print("UPLOAD", filename, object_name)
 
 
 def main():
