@@ -79,7 +79,7 @@ def upload_file_to_s3(file_name, object_name):
 
 
 def process_files(press_name):
-    file_direcotry = f"/home/{press_name}" if env["ENV"] else os.getcwd()
+    file_direcotry = f"/home/{press_name}/" if env["ENV"] else os.getcwd()
     file_list = os.listdir(file_direcotry)
     process_directory = os.path.join(file_direcotry, "process")
     os.makedirs(process_directory, exist_ok=True)
