@@ -16,6 +16,10 @@ s3 = boto3.client(
     aws_access_key_id=env["ACCESS_KEY"],
     aws_secret_access_key=env["SECRET_KEY"],
 )
+directory_path = {
+    "hi": "/home/hankookilbo/",
+    "mk": "/home/mk/",
+}
 
 
 # def download_file(ftp, filename, filepath):
@@ -79,7 +83,7 @@ def upload_file_to_s3(file_name, object_name):
 
 
 def process_files(press_name):
-    file_direcotry = f"/home/{press_name}/" if env["ENV"] else os.getcwd()
+    file_direcotry = directory_path[press_name] if env["ENV"] else os.getcwd()
     file_list = os.listdir(file_direcotry)
     process_directory = os.path.join(file_direcotry, "process")
     os.makedirs(process_directory, exist_ok=True)
