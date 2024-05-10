@@ -17,10 +17,14 @@ s3 = boto3.client(
     aws_secret_access_key=env["SECRET_KEY"],
 )
 directory_path = {
-    "hi": "/home/hankookilbo/",
-    "mk": "/home/mk/",
+    "hi": "/home/hankookilbo/",  # 한국일보
+    "mk": "/home/mk/",  # 매일경제
+    "fn": "home/fnnews",  # 파이낸셜
+    "hn": "/home/hani/",  # 한겨례
+    "ja": "/home/joongang/",  # 중앙일보
+    "kh": "/home/khan/",  # 경향신문
+    "hk": "/home/hankyung/",  # 한국경제
 }
-
 
 # def download_file(ftp, filename, filepath):
 #     if not os.path.exists(filepath):
@@ -96,18 +100,16 @@ def process_files(press_name):
     for filename in file_list:
         source_path = os.path.join(file_direcotry, filename)
         destination_path = os.path.join(process_directory, filename)
-
-        origin_file_exist = os.path.exists(destination_path)
-
         modifited_time = os.stat(source_path).st_mtime
         now = datetime.now(kst).timestamp()
-        if not origin_file_exist and (now - modifited_time) < 60 * 10:
+        if (now - modifited_time) < 60 * 10:
             copy2(source_path, destination_path)
 
             print("COPY", filename)
 
             object_name = f"origin_news/{press_name}/{filename}"
             upload_file_to_s3(os.path.join(destination_path), object_name)
+            os.remove(destination_path)
 
             print("UPLOAD", filename, object_name)
 
