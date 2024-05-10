@@ -79,9 +79,9 @@ def upload_file_to_s3(file_name, object_name):
 
 
 def process_files(press_name):
-    current_directory = os.getcwd()
-    file_list = os.listdir(current_directory)
-    process_directory = os.path.join(current_directory, "process")
+    file_direcotry = f"/home/{press_name}" if env["ENV"] else os.getcwd()
+    file_list = os.listdir(file_direcotry)
+    process_directory = os.path.join(file_direcotry, "process")
     os.makedirs(process_directory, exist_ok=True)
     if press_name == "mk":
         # mk로 시작하는 파일을 선택
@@ -91,7 +91,7 @@ def process_files(press_name):
         file_list = [i for i in file_list if i.endswith(".xml")]
 
     for filename in file_list:
-        source_path = os.path.join(current_directory, filename)
+        source_path = os.path.join(file_direcotry, filename)
         destination_path = os.path.join(process_directory, filename)
 
         origin_file_exist = os.path.exists(destination_path)
