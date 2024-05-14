@@ -125,12 +125,11 @@ def process_files(press_name):
 
 
 def main():
-    process_press_list = ["hi"]
+    press_name = env["PRESS_NAME"]
     need_sync_press = ["mk", "fn"]
     # if press_name in need_sync_press:
     #     sync_press()
-    for press_name in process_press_list:
-        process_files(press_name)
+    process_files(press_name)
 
 
 # Run the main function
