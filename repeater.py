@@ -153,6 +153,11 @@ def process_files(press_name):
                 # 원본 삭제
                 os.remove(source_path)
                 result["delete"] += 1
+                logger.info(f"DELETE {source_path}")
+            elif process_file_exist:
+                os.remove(source_path)
+                result["delete"] += 1
+                logger.info(f"DELETE {source_path}")
 
         except Exception as e:
             logger.error(f"Error: {press_name} {filename} {e}")
