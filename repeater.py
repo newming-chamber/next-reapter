@@ -133,13 +133,11 @@ def process_files(press_name):
 
             modifited_time = os.stat(source_path).st_mtime
             now = datetime.now(kst).timestamp()
+            # process 로 이동
+            copy2(source_path, destination_path)
             if not process_file_exist:
-                # process 로 이동
-                copy2(source_path, destination_path)
-
                 logger.info(f"COPY {source_path} -> {destination_path}")
                 result["copy"] += 1
-
                 # s3 업로드
                 if now - modifited_time < 60 * 5:
                     object_name = f"origin_news/{press_name}/{filename}"
@@ -154,7 +152,7 @@ def process_files(press_name):
             elif process_file_exist:
                 os.remove(source_path)
                 result["delete"] += 1
-                logger.info(f"DELETE {source_path}")
+                logger.info(f"DELETE origin path {source_path}")
 
         except Exception as e:
             logger.error(f"Error: {press_name} {filename} {e}")
