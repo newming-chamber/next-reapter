@@ -5,3 +5,5 @@ mk*
 process/*
 
 .env
+
+*.log
