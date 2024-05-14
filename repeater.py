@@ -6,6 +6,14 @@ import boto3
 from shutil import copy2
 from datetime import datetime
 import pytz
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    filename="news_repeater.log",
+)
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 kst = pytz.timezone("Asia/Seoul")
@@ -81,7 +89,7 @@ def upload_file_to_s3(file_name, object_name):
     try:
         s3.upload_file(file_name, bucket, object_name)
     except Exception as e:
-        print(e)
+        logger.info(e)
         return False
     return True
 
@@ -109,12 +117,12 @@ def process_files(press_name):
         if not origin_file_exist and (now - modifited_time) < 60 * 10:
             copy2(source_path, destination_path)
 
-            print("COPY", filename)
+            logger.info("COPY", filename)
 
             object_name = f"origin_news/{press_name}/{filename}"
             upload_file_to_s3(os.path.join(destination_path), object_name)
 
-            print("UPLOAD", filename, object_name)
+            logger.info("UPLOAD", filename, object_name)
 
 
 def main():
