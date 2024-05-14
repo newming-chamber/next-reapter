@@ -8,23 +8,8 @@ from datetime import datetime
 import pytz
 import logging
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    filename="news_repeater.log",
-)
-logger = logging.getLogger(__name__)
-
 load_dotenv()
-kst = pytz.timezone("Asia/Seoul")
 env = os.environ
-s3 = boto3.client(
-    "s3",
-    region_name=env.get("AWS_REGION", "ap-northeast-2"),
-    aws_access_key_id=env["ACCESS_KEY"],
-    aws_secret_access_key=env["SECRET_KEY"],
-)
-
 directory_path = {
     "hi": "/home/hankookilbo",  # 한국일보
     "mk": "/home/mk",  # 매일경제
@@ -34,6 +19,22 @@ directory_path = {
     "kh": "/home/khan",  # 경향신문
     "hk": "/home/hankyung",  # 한국경제
 }
+base_path = directory_path
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    filename=f"{directory_path[env['PRESS_NAME']]}/next-repeater/news_repeater.log",
+)
+logger = logging.getLogger(__name__)
+
+kst = pytz.timezone("Asia/Seoul")
+s3 = boto3.client(
+    "s3",
+    region_name=env.get("AWS_REGION", "ap-northeast-2"),
+    aws_access_key_id=env["ACCESS_KEY"],
+    aws_secret_access_key=env["SECRET_KEY"],
+)
+
 
 # def download_file(ftp, filename, filepath):
 #     if not os.path.exists(filepath):
@@ -140,7 +141,7 @@ def process_files(press_name):
                 result["copy"] += 1
 
                 # s3 업로드
-                if now - modifited_time > 60 * 5:
+                if now - modifited_time < 60 * 5:
                     object_name = f"origin_news/{press_name}/{filename}"
                     upload_file_to_s3(os.path.join(destination_path), object_name)
 
@@ -150,10 +151,6 @@ def process_files(press_name):
                     logger.info(f"UPLOAD {filename} {object_name}")
                     result["upload"] += 1
 
-                # 원본 삭제
-                os.remove(source_path)
-                result["delete"] += 1
-                logger.info(f"DELETE {source_path}")
             elif process_file_exist:
                 os.remove(source_path)
                 result["delete"] += 1
@@ -170,6 +167,7 @@ def main():
     need_sync_press = ["mk", "fn"]
     # if press_name in need_sync_press:
     #     sync_press()
+    logger.info(f"Start {press_name} Repeater")
     process_result = process_files(press_name)
     remove_result = remove_old_files()
     total_delete = process_result["delete"] + remove_result["delete"]
