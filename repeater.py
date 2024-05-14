@@ -122,6 +122,9 @@ def process_files(press_name):
                 object_name = f"origin_news/{press_name}/{filename}"
                 upload_file_to_s3(os.path.join(destination_path), object_name)
 
+                for_stage = f"stage_news/{press_name}/{filename}"
+                upload_file_to_s3(os.path.join(destination_path), for_stage)
+
                 logger.info(f"UPLOAD {filename} {object_name}")
             # elif process_file_exist:
             #     os.remove(source_path)
