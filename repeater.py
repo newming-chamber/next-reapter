@@ -34,6 +34,15 @@ directory_path = {
     "kh": "/home/khan",  # 경향신문
     "hk": "/home/hankyung",  # 한국경제
 }
+logger_path = {
+    "hi": "hi_news_repeater.log",
+    "mk": "mk_news_repeater.log",
+    "fn": "fn_news_repeater.log",
+    "hn": "hn_news_repeater.log",
+    "ja": "ja_news_repeater.log",
+    "kh": "kh_news_repeater.log",
+    "hk": "hk_news_repeater.log",
+}
 
 # def download_file(ftp, filename, filepath):
 #     if not os.path.exists(filepath):
@@ -75,6 +84,25 @@ directory_path = {
 #     ftp.close()
 
 
+def setup_logger(log_path):
+    # 로거 생성
+    logger = logging.getLogger("news_repeater")
+    logger.setLevel(logging.INFO)
+
+    # 핸들러 생성
+    file_handler = logging.FileHandler(log_path)
+    file_handler.setLevel(logging.INFO)
+
+    # 포매터 생성
+    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+    file_handler.setFormatter(formatter)
+
+    # 핸들러를 로거에 추가
+    logger.addHandler(file_handler)
+
+    return logger
+
+
 def s3_object_exists(object_name):
     bucket = env["S3_BUCKET"]
     try:
@@ -95,6 +123,7 @@ def upload_file_to_s3(file_name, object_name):
 
 
 def process_files(press_name):
+    logger = setup_logger(logger_path[press_name])
     file_direcotry = directory_path[press_name] if env["ENV"] else os.getcwd()
     file_list = os.listdir(file_direcotry)
     process_directory = os.path.join(file_direcotry, "process")
@@ -105,7 +134,6 @@ def process_files(press_name):
     else:
         # .xml로 끝나는 파일을 선택
         file_list = [i for i in file_list if i.endswith(".xml")]
-
     for filename in file_list:
         source_path = os.path.join(file_direcotry, filename)
         destination_path = os.path.join(process_directory, filename)
@@ -114,15 +142,17 @@ def process_files(press_name):
 
         modifited_time = os.stat(source_path).st_mtime
         now = datetime.now(kst).timestamp()
-        if not origin_file_exist and (now - modifited_time) < 60 * 10:
-            copy2(source_path, destination_path)
+        print(origin_file_exist)
+        if not origin_file_exist and (now - modifited_time) > 1:
+            print("?")
+            # copy2(source_path, destination_path)
 
-            logger.info("COPY", filename)
+            logger.info(f"COPY {filename}")
 
             object_name = f"origin_news/{press_name}/{filename}"
-            upload_file_to_s3(os.path.join(destination_path), object_name)
+            # upload_file_to_s3(os.path.join(destination_path), object_name)
 
-            logger.info("UPLOAD", filename, object_name)
+            logger.info(f"UPLOAD {filename} {object_name}")
 
 
 def main():
