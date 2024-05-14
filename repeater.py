@@ -93,7 +93,7 @@ def remove_old_files():
     result = {"delete": 0}
     process_directory = os.path.join(os.getcwd(), "process_files")
     now = datetime.now(kst)
-    threshold_time = now - timedelta(days=7)
+    threshold_time = now - timedelta(days=1)
 
     for filename in os.listdir(process_directory):
         file_path = os.path.join(process_directory, filename)
