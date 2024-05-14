@@ -106,22 +106,25 @@ def process_files(press_name):
         # .xml로 끝나는 파일을 선택
         file_list = [i for i in file_list if i.endswith(".xml")]
     for filename in file_list:
-        source_path = os.path.join(file_direcotry, filename)
-        destination_path = os.path.join(process_directory, filename)
+        try:
+            source_path = os.path.join(file_direcotry, filename)
+            destination_path = os.path.join(process_directory, filename)
 
-        origin_file_exist = os.path.exists(destination_path)
+            origin_file_exist = os.path.exists(destination_path)
 
-        modifited_time = os.stat(source_path).st_mtime
-        now = datetime.now(kst).timestamp()
-        if not origin_file_exist and (now - modifited_time) < 60 * 5:
-            copy2(source_path, destination_path)
+            modifited_time = os.stat(source_path).st_mtime
+            now = datetime.now(kst).timestamp()
+            if not origin_file_exist and (now - modifited_time) < 60 * 5:
+                copy2(source_path, destination_path)
 
-            logger.info(f"COPY {filename}")
+                logger.info(f"COPY {filename}")
 
-            object_name = f"origin_news/{press_name}/{filename}"
-            upload_file_to_s3(os.path.join(destination_path), object_name)
+                object_name = f"origin_news/{press_name}/{filename}"
+                upload_file_to_s3(os.path.join(destination_path), object_name)
 
-            logger.info(f"UPLOAD {filename} {object_name}")
+                logger.info(f"UPLOAD {filename} {object_name}")
+        except Exception as e:
+            logger.error(f"Error: {press_name} {filename} {e}")
 
 
 def main():
