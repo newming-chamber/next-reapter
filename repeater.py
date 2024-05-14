@@ -97,7 +97,7 @@ def upload_file_to_s3(file_name, object_name):
 def process_files(press_name):
     file_direcotry = directory_path[press_name] if env["ENV"] else os.getcwd()
     file_list = os.listdir(file_direcotry)
-    process_directory = os.path.join(file_direcotry, "process")
+    process_directory = os.path.join(os.getcwd(), "process_files")
     os.makedirs(process_directory, exist_ok=True)
     if press_name == "mk":
         # mk로 시작하는 파일을 선택
@@ -110,19 +110,21 @@ def process_files(press_name):
             source_path = os.path.join(file_direcotry, filename)
             destination_path = os.path.join(process_directory, filename)
 
-            origin_file_exist = os.path.exists(destination_path)
+            process_file_exist = os.path.exists(destination_path)
 
             modifited_time = os.stat(source_path).st_mtime
             now = datetime.now(kst).timestamp()
-            if not origin_file_exist and (now - modifited_time) < 60 * 5:
+            if not process_file_exist and (now - modifited_time) < 60 * 5:
                 copy2(source_path, destination_path)
 
-                logger.info(f"COPY {filename}")
+                logger.info(f"COPY {source_path} -> {destination_path}")
 
                 object_name = f"origin_news/{press_name}/{filename}"
                 upload_file_to_s3(os.path.join(destination_path), object_name)
 
                 logger.info(f"UPLOAD {filename} {object_name}")
+            # elif process_file_exist:
+            #     os.remove(source_path)
         except Exception as e:
             logger.error(f"Error: {press_name} {filename} {e}")
 
