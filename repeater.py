@@ -8,6 +8,13 @@ from datetime import datetime
 import pytz
 import logging
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    filename="news_repeater.log",
+)
+logger = logging.getLogger(__name__)
+
 load_dotenv()
 kst = pytz.timezone("Asia/Seoul")
 env = os.environ
@@ -26,15 +33,6 @@ directory_path = {
     "ja": "/home/joongang",  # 중앙일보
     "kh": "/home/khan",  # 경향신문
     "hk": "/home/hankyung",  # 한국경제
-}
-logger_path = {
-    "hi": "hi_news_repeater.log",
-    "mk": "mk_news_repeater.log",
-    "fn": "fn_news_repeater.log",
-    "hn": "hn_news_repeater.log",
-    "ja": "ja_news_repeater.log",
-    "kh": "kh_news_repeater.log",
-    "hk": "hk_news_repeater.log",
 }
 
 # def download_file(ftp, filename, filepath):
@@ -77,25 +75,6 @@ logger_path = {
 #     ftp.close()
 
 
-def setup_logger(log_path):
-    # 로거 생성
-    logger = logging.getLogger("news_repeater")
-    logger.setLevel(logging.INFO)
-
-    # 핸들러 생성
-    file_handler = logging.FileHandler(log_path)
-    file_handler.setLevel(logging.INFO)
-
-    # 포매터 생성
-    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-    file_handler.setFormatter(formatter)
-
-    # 핸들러를 로거에 추가
-    logger.addHandler(file_handler)
-
-    return logger
-
-
 def s3_object_exists(object_name):
     bucket = env["S3_BUCKET"]
     try:
@@ -116,7 +95,6 @@ def upload_file_to_s3(file_name, object_name):
 
 
 def process_files(press_name):
-    logger = setup_logger(logger_path[press_name])
     file_direcotry = directory_path[press_name] if env["ENV"] else os.getcwd()
     file_list = os.listdir(file_direcotry)
     process_directory = os.path.join(file_direcotry, "process")
@@ -137,13 +115,12 @@ def process_files(press_name):
         now = datetime.now(kst).timestamp()
         print(origin_file_exist)
         if not origin_file_exist and (now - modifited_time) > 1:
-            print("?")
-            # copy2(source_path, destination_path)
+            copy2(source_path, destination_path)
 
             logger.info(f"COPY {filename}")
 
             object_name = f"origin_news/{press_name}/{filename}"
-            # upload_file_to_s3(os.path.join(destination_path), object_name)
+            upload_file_to_s3(os.path.join(destination_path), object_name)
 
             logger.info(f"UPLOAD {filename} {object_name}")
 
