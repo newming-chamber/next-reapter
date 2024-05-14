@@ -140,14 +140,15 @@ def process_files(press_name):
                 result["copy"] += 1
 
                 # s3 업로드
-                object_name = f"origin_news/{press_name}/{filename}"
-                upload_file_to_s3(os.path.join(destination_path), object_name)
+                if now - modifited_time > 60 * 5:
+                    object_name = f"origin_news/{press_name}/{filename}"
+                    upload_file_to_s3(os.path.join(destination_path), object_name)
 
-                for_stage = f"stage_news/{press_name}/{filename}"
-                upload_file_to_s3(os.path.join(destination_path), for_stage)
+                    for_stage = f"stage_news/{press_name}/{filename}"
+                    upload_file_to_s3(os.path.join(destination_path), for_stage)
 
-                logger.info(f"UPLOAD {filename} {object_name}")
-                result["upload"] += 1
+                    logger.info(f"UPLOAD {filename} {object_name}")
+                    result["upload"] += 1
 
                 # 원본 삭제
                 os.remove(source_path)
