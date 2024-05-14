@@ -86,15 +86,32 @@ def s3_object_exists(object_name):
 
 def upload_file_to_s3(file_name, object_name):
     bucket = env["S3_BUCKET"]
-    try:
-        s3.upload_file(file_name, bucket, object_name)
-    except Exception as e:
-        logger.info(e)
-        return False
-    return True
+    s3.upload_file(file_name, bucket, object_name)
+
+
+def remove_old_files():
+    result = {"delete": 0}
+    process_directory = os.path.join(os.getcwd(), "process_files")
+    now = datetime.now(kst)
+    threshold_time = now - timedelta(days=7)
+
+    for filename in os.listdir(process_directory):
+        file_path = os.path.join(process_directory, filename)
+        file_mod_time = datetime.fromtimestamp(os.stat(file_path).st_mtime, kst)
+
+        if file_mod_time < threshold_time:
+            try:
+                os.remove(file_path)
+                logger.info(f"REMOVE {file_path} (modified at {file_mod_time})")
+                result["delete"] += 1
+
+            except Exception as e:
+                logger.error(f"Error removing file {file_path}: {e}")
+    return result
 
 
 def process_files(press_name):
+    result = {"copy": 0, "upload": 0, "delete": 0}
     file_direcotry = directory_path[press_name] if env["ENV"] else os.getcwd()
     file_list = os.listdir(file_direcotry)
     process_directory = os.path.join(os.getcwd(), "process_files")
@@ -105,6 +122,7 @@ def process_files(press_name):
     else:
         # .xml로 끝나는 파일을 선택
         file_list = [i for i in file_list if i.endswith(".xml")]
+
     for filename in file_list:
         try:
             source_path = os.path.join(file_direcotry, filename)
@@ -114,11 +132,14 @@ def process_files(press_name):
 
             modifited_time = os.stat(source_path).st_mtime
             now = datetime.now(kst).timestamp()
-            if not process_file_exist and (now - modifited_time) < 60 * 5:
+            if not process_file_exist:
+                # process 로 이동
                 copy2(source_path, destination_path)
 
                 logger.info(f"COPY {source_path} -> {destination_path}")
+                result["copy"] += 1
 
+                # s3 업로드
                 object_name = f"origin_news/{press_name}/{filename}"
                 upload_file_to_s3(os.path.join(destination_path), object_name)
 
@@ -126,10 +147,16 @@ def process_files(press_name):
                 upload_file_to_s3(os.path.join(destination_path), for_stage)
 
                 logger.info(f"UPLOAD {filename} {object_name}")
-            # elif process_file_exist:
-            #     os.remove(source_path)
+                result["upload"] += 1
+
+                # 원본 삭제
+                os.remove(source_path)
+                result["delete"] += 1
+
         except Exception as e:
             logger.error(f"Error: {press_name} {filename} {e}")
+
+    return result
 
 
 def main():
@@ -137,7 +164,17 @@ def main():
     need_sync_press = ["mk", "fn"]
     # if press_name in need_sync_press:
     #     sync_press()
-    process_files(press_name)
+    process_result = process_files(press_name)
+    remove_result = remove_old_files()
+    total_delete = process_result["delete"] + remove_result["delete"]
+
+    # 최종 결과를 병합합니다
+    combined_result = {
+        "copy": process_result["copy"],
+        "upload": process_result["upload"],
+        "delete": total_delete,
+    }
+    print(combined_result)
 
 
 # Run the main function
