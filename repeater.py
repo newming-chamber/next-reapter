@@ -113,7 +113,6 @@ def process_files(press_name):
 
         modifited_time = os.stat(source_path).st_mtime
         now = datetime.now(kst).timestamp()
-        print(origin_file_exist)
         if not origin_file_exist and (now - modifited_time) > 1:
             copy2(source_path, destination_path)
 
