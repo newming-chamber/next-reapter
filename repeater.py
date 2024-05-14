@@ -8,13 +8,6 @@ from datetime import datetime
 import pytz
 import logging
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    filename="news_repeater.log",
-)
-logger = logging.getLogger(__name__)
-
 load_dotenv()
 kst = pytz.timezone("Asia/Seoul")
 env = os.environ
