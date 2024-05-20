@@ -1,192 +1,28 @@
-from ftplib import FTP
 import os
-from datetime import datetime, timedelta
-from dotenv import load_dotenv
-import boto3
-from shutil import copy2
-from datetime import datetime
-import pytz
-import logging
-
-load_dotenv()
-env = os.environ
-kst = pytz.timezone("Asia/Seoul")
-directory_path = {
-    "hi": "/home/hankookilbo",  # 한국일보
-    "mk": "/home/mk",  # 매일경제
-    "fn": "/home/fnnews",  # 파이낸셜
-    "hn": "/home/hani",  # 한겨례
-    "ja": "/home/joongang",  # 중앙일보
-    "kh": "/home/khan",  # 경향신문
-    "hk": "/home/hankyung",  # 한국경제
-}
-base_path = directory_path
-today = datetime.now(kst).strftime("%Y-%m-%d")
-
-# 디렉토리 경로 설정
-log_directory = os.path.join(directory_path[env["PRESS_NAME"]], "next-repeater", "logs")
-
-# 디렉토리 생성
-os.makedirs(log_directory, exist_ok=True)
-
-# 로그 파일 이름 설정
-log_filename = os.path.join(log_directory, f"news_repeater_{today}.log")
-
-# 로그 설정
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    filename=log_filename,
-)
-logger = logging.getLogger(__name__)
-s3 = boto3.client(
-    "s3",
-    region_name=env.get("AWS_REGION", "ap-northeast-2"),
-    aws_access_key_id=env["ACCESS_KEY"],
-    aws_secret_access_key=env["SECRET_KEY"],
-)
-
-
-def download_file(ftp, filename, filepath):
-    if not os.path.exists(filepath):
-        try:
-            os.makedirs(os.path.dirname(filepath), exist_ok=True)
-            with open(filepath, "wb") as f:
-                ftp.retrbinary("RETR " + filename, f.write)
-            logger.info(f"File {filename} downloaded")
-        except Exception as e:
-            logger.info(f"File {filename} error: {e}")
-
-
-def sync_press(press_name):
-    now = datetime.now() + timedelta(hours=9)
-    threshold_time = now - timedelta(days=1)
-
-    ftp_host = env["FTP_HOST"]
-    ftp_port = int(env["FTP_PORT"])
-    ftp_id = env["FTP_ID"]
-    ftp_pw = env["FTP_PW"]
-    file_directory = directory_path[press_name]
-
-    ftp = FTP()
-    ftp.connect(ftp_host, ftp_port)
-    ftp.login(ftp_id, ftp_pw)
-    logger.info(ftp.getwelcome())
-
-    files = ftp.nlst()
-    for filename in files:
-        try:
-            publish_time = filename.split("_")[1]
-            file_time = datetime.strptime(publish_time, "%Y%m%d%H%M%S")
-            process_filepath = os.path.join(os.getcwd(), "process_files", filename)
-
-            if file_time > threshold_time and not os.path.exists(process_filepath):
-                filepath = os.path.join(file_directory, filename)
-                download_file(ftp, filename, filepath)
-            else:
-                filepath = os.path.join(file_directory, filename)
-        except Exception as e:
-            logger.info(f"File {filename} error: {e}")
-
-    ftp.close()
-
-
-def s3_object_exists(object_name):
-    bucket = env["S3_BUCKET"]
-    try:
-        s3.head_object(Bucket=bucket, Key=object_name)
-        return True
-    except Exception as e:
-        return False
-
-
-def upload_file_to_s3(file_name, object_name):
-    bucket = env["S3_BUCKET"]
-    s3.upload_file(file_name, bucket, object_name)
-
-
-def remove_old_files():
-    result = {"delete": 0}
-    process_directory = os.path.join(os.getcwd(), "process_files")
-    now = datetime.now(kst)
-    threshold_time = now - timedelta(days=1)
-
-    for filename in os.listdir(process_directory):
-        file_path = os.path.join(process_directory, filename)
-        file_mod_time = datetime.fromtimestamp(os.stat(file_path).st_mtime, kst)
-
-        if file_mod_time < threshold_time:
-            try:
-                os.remove(file_path)
-                logger.info(f"REMOVE {file_path} (modified at {file_mod_time})")
-                result["delete"] += 1
-
-            except Exception as e:
-                logger.error(f"Error removing file {file_path}: {e}")
-    return result
-
-
-def process_files(press_name):
-    result = {"copy": 0, "upload": 0, "delete": 0}
-    file_direcotry = directory_path[press_name]
-    file_list = os.listdir(file_direcotry)
-    process_directory = os.path.join(os.getcwd(), "process_files")
-    os.makedirs(process_directory, exist_ok=True)
-    if press_name == "mk":
-        # mk로 시작하는 파일을 선택
-        file_list = [i for i in file_list if i.startswith("mk")]
-    else:
-        # .xml로 끝나는 파일을 선택
-        file_list = [i for i in file_list if i.endswith(".xml")]
-
-    for filename in file_list:
-        try:
-            source_path = os.path.join(file_direcotry, filename)
-            destination_path = os.path.join(process_directory, filename)
-
-            process_file_exist = os.path.exists(destination_path)
-
-            modifited_time = os.stat(source_path).st_mtime
-            now = datetime.now(kst).timestamp()
-            # process 로 이동
-            copy2(source_path, destination_path)
-            if not process_file_exist:
-                logger.info(f"COPY {source_path} -> {destination_path}")
-                result["copy"] += 1
-                # s3 업로드
-                if now - modifited_time < 60 * 5:
-                    object_name = f"origin_news/{press_name}/{filename}"
-                    upload_file_to_s3(os.path.join(destination_path), object_name)
-                    logger.info(f"UPLOAD {filename} {object_name}")
-
-                    for_stage = f"stage_news/{press_name}/{filename}"
-                    upload_file_to_s3(os.path.join(destination_path), for_stage)
-                    logger.info(f"UPLOAD {filename} {for_stage}")
-
-                    result["upload"] += 1
-
-            elif process_file_exist:
-                os.remove(source_path)
-                result["delete"] += 1
-                logger.info(f"DELETE origin path {source_path}")
-
-        except Exception as e:
-            logger.error(f"Error: {press_name} {filename} {e}")
-
-    return result
+from .config import env, directory_path
+from .ftp_sync import FTPManager
+from .file_utils import FileManager
+from .logger import LoggerSetup
 
 
 def main():
     press_name = env["PRESS_NAME"]
-    need_sync_press = ["mk", "fn"]
+    logger_setup = LoggerSetup(press_name)
+    logger = logger_setup.logger
     logger.info(f"Start {press_name} Repeater")
+
+    file_manager = FileManager(press_name)
+
+    need_sync_press = ["mk", "fn"]
     if press_name in need_sync_press:
-        sync_press(press_name)
-    process_result = process_files(press_name)
-    remove_result = remove_old_files()
+        ftp_manager = FTPManager(press_name, file_manager)
+        ftp_manager.sync_press()
+
+    process_result = file_manager.process_files()
+    process_directory = os.path.join(os.getcwd(), "process_files")
+    remove_result = file_manager.remove_old_files(process_directory)
     total_delete = process_result["delete"] + remove_result["delete"]
 
-    # 최종 결과를 병합합니다
     combined_result = {
         "copy": process_result["copy"],
         "upload": process_result["upload"],
@@ -195,5 +31,5 @@ def main():
     print(combined_result)
 
 
-# Run the main function
-main()
+if __name__ == "__main__":
+    main()
