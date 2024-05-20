@@ -51,10 +51,10 @@ def sync_press(press_name):
     now = datetime.now() + timedelta(hours=9)
     fifteen_days_ago = now - timedelta(days=15)
 
-    ftp_host = env("FTP_HOST")
-    ftp_port = int(env("FTP_PORT"))
-    ftp_id = env("FTP_ID")
-    ftp_pw = env("FTP_PW")
+    ftp_host = env["FTP_HOST"]
+    ftp_port = int(env["FTP_PORT"])
+    ftp_id = env["FTP_ID"]
+    ftp_pw = env["FTP_PW"]
     file_directory = directory_path[press_name]
 
     ftp = FTP()
