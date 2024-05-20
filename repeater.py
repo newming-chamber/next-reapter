@@ -42,9 +42,9 @@ def download_file(ftp, filename, filepath):
             os.makedirs(os.path.dirname(filepath), exist_ok=True)
             with open(filepath, "wb") as f:
                 ftp.retrbinary("RETR " + filename, f.write)
-            print("File", filename, "downloaded")
+            logger.info("File", filename, "downloaded")
         except Exception as e:
-            print("File", filename, "error:", e)
+            logger.info("File", filename, "error:", e)
 
 
 def sync_press(press_name):
@@ -60,7 +60,7 @@ def sync_press(press_name):
     ftp = FTP()
     ftp.connect(ftp_host, ftp_port)
     ftp.login(ftp_id, ftp_pw)
-    print(ftp.getwelcome())
+    logger.info(ftp.getwelcome())
 
     files = ftp.nlst()
     for filename in files:
@@ -75,9 +75,9 @@ def sync_press(press_name):
                 filepath = os.path.join(file_directory, filename)
                 if os.path.exists(filepath):
                     os.remove(filepath)
-                    print("File", filename, "deleted")
+                    logger.info("File", filename, "deleted")
         except Exception as e:
-            print("File", filename, "error:", e)
+            logger.info("File", filename, "error:", e)
 
     ftp.close()
 
