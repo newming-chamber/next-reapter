@@ -36,44 +36,50 @@ s3 = boto3.client(
 )
 
 
-# def download_file(ftp, filename, filepath):
-#     if not os.path.exists(filepath):
-#         try:
-#             os.makedirs(os.path.dirname(filepath), exist_ok=True)
-#             with open(filepath, "wb") as f:
-#                 ftp.retrbinary("RETR " + filename, f.write)
-#             print("File", filename, "downloaded")
-#         except Exception as e:
-#             print("File", filename, "error:", e)
+def download_file(ftp, filename, filepath):
+    if not os.path.exists(filepath):
+        try:
+            os.makedirs(os.path.dirname(filepath), exist_ok=True)
+            with open(filepath, "wb") as f:
+                ftp.retrbinary("RETR " + filename, f.write)
+            print("File", filename, "downloaded")
+        except Exception as e:
+            print("File", filename, "error:", e)
 
 
-# def sync_press():
-#     now = datetime.now() + timedelta(hours=9)
-#     fifteen_days_ago = now - timedelta(days=15)
+def sync_press(press_name):
+    now = datetime.now() + timedelta(hours=9)
+    fifteen_days_ago = now - timedelta(days=15)
 
-#     ftp = FTP()
-#     ftp.connect("210.179.172.10", 8023)
-#     ftp.login("griptoday", "vUTg1^d8VE")
-#     print(ftp.getwelcome())
+    ftp_host = env("FTP_HOST")
+    ftp_port = int(env("FTP_PORT"))
+    ftp_id = env("FTP_ID")
+    ftp_pw = env("FTP_PW")
+    file_directory = directory_path[press_name]
 
-#     files = ftp.nlst()
-#     for filename in files:
-#         try:
-#             publish_time = filename.split("_")[1]
-#             file_time = datetime.strptime(publish_time, "%Y%m%d%H%M%S")
+    ftp = FTP()
+    ftp.connect(ftp_host, ftp_port)
+    ftp.login(ftp_id, ftp_pw)
+    print(ftp.getwelcome())
 
-#             if file_time > fifteen_days_ago:
-#                 filepath = "/home/mk/" + filename
-#                 download_file(ftp, filename, filepath)
-#             else:
-#                 filepath = "/home/mk/" + filename
-#                 if os.path.exists(filepath):
-#                     os.remove(filepath)
-#                     print("File", filename, "deleted")
-#         except Exception as e:
-#             print("File", filename, "error:", e)
+    files = ftp.nlst()
+    for filename in files:
+        try:
+            publish_time = filename.split("_")[1]
+            file_time = datetime.strptime(publish_time, "%Y%m%d%H%M%S")
 
-#     ftp.close()
+            if file_time > fifteen_days_ago:
+                filepath = os.path.join(file_directory, filename)
+                download_file(ftp, filename, filepath)
+            else:
+                filepath = os.path.join(file_directory, filename)
+                if os.path.exists(filepath):
+                    os.remove(filepath)
+                    print("File", filename, "deleted")
+        except Exception as e:
+            print("File", filename, "error:", e)
+
+    ftp.close()
 
 
 def s3_object_exists(object_name):
@@ -163,8 +169,8 @@ def process_files(press_name):
 def main():
     press_name = env["PRESS_NAME"]
     need_sync_press = ["mk", "fn"]
-    # if press_name in need_sync_press:
-    #     sync_press()
+    if press_name in need_sync_press:
+        sync_press(press_name)
     logger.info(f"Start {press_name} Repeater")
     process_result = process_files(press_name)
     remove_result = remove_old_files()
