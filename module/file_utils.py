@@ -67,10 +67,14 @@ class FileManager:
                 destination_path = os.path.join(process_directory, filename)
 
                 copy2(source_path, destination_path)
-                self.parsing_news("prod", filename, destination_path)
-                self.parsing_news("stage", filename, destination_path)
 
-                result["upload"] += 1
+                file_mod_time = datetime.fromtimestamp(os.stat(source_path).st_mtime)
+                threshold_time = datetime.now() - timedelta(minutes=10)
+                if file_mod_time < threshold_time:
+                    self.parsing_news("prod", filename, destination_path)
+                    self.parsing_news("stage", filename, destination_path)
+                    result["upload"] += 1
+
                 os.remove(destination_path)
                 result["delete"] += 1
                 self.logger.info(f"DELETE process path {destination_path}")
