@@ -24,8 +24,7 @@ base_path = directory_path
 today = datetime.now(kst).strftime("%Y-%m-%d")
 
 # 디렉토리 경로 설정
-directory_path = directory_path[env["PRESS_NAME"]]  # 기존에 정의된 directory_path 사용
-log_directory = os.path.join(directory_path, "next-repeater", "logs")
+log_directory = os.path.join(directory_path[env["PRESS_NAME"]], "next-repeater", "logs")
 
 # 디렉토리 생성
 os.makedirs(log_directory, exist_ok=True)
