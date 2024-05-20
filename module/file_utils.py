@@ -24,7 +24,7 @@ class FileManager:
             except Exception as e:
                 self.logger.info(f"File {filename} error: {e}")
 
-    def remove_old_files(self, process_directory):
+    def remove_old_files(self, process_directory, press_name):
         result = {"delete": 0}
         process_directory = os.path.join(os.getcwd(), "process_files")
         kst = pytz.timezone("Asia/Seoul")
@@ -33,8 +33,12 @@ class FileManager:
 
         for filename in os.listdir(process_directory):
             file_path = os.path.join(process_directory, filename)
-            file_mod_time = datetime.fromtimestamp(os.stat(file_path).st_mtime, kst)
-
+            if press_name == "mk":
+                file_mod_time = datetime.fromtimestamp(os.stat(file_path).st_mtime, kst)
+            else:
+                publish_time = filename.split("_")[1]
+                file_mod_time = datetime.strptime(publish_time, "%Y%m%d%H%M%S")
+                file_mod_time = kst.localize(file_mod_time)
             if file_mod_time < threshold_time:
                 try:
                     os.remove(file_path)
@@ -74,10 +78,9 @@ class FileManager:
                     result["delete"] += 1
                     self.logger.info(f"DELETE process path {destination_path}")
 
-                elif process_file_exist:
-                    os.remove(source_path)
-                    result["delete"] += 1
-                    self.logger.info(f"DELETE origin path {source_path}")
+                os.remove(source_path)
+                result["delete"] += 1
+                self.logger.info(f"DELETE origin path {source_path}")
 
             except Exception as e:
                 self.logger.error(f"Error: {self.press_name} {filename} {e}")

@@ -20,7 +20,7 @@ def main():
 
     process_result = file_manager.process_files()
     process_directory = os.path.join(os.getcwd(), "process_files")
-    remove_result = file_manager.remove_old_files(process_directory)
+    remove_result = file_manager.remove_old_files(process_directory, press_name)
     total_delete = process_result["delete"] + remove_result["delete"]
 
     combined_result = {
