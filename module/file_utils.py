@@ -66,17 +66,14 @@ class FileManager:
                 source_path = os.path.join(self.directory_path, filename)
                 destination_path = os.path.join(process_directory, filename)
 
-                process_file_exist = os.path.exists(destination_path)
-
                 copy2(source_path, destination_path)
-                if not process_file_exist:
-                    self.parsing_news("prod", filename, destination_path)
-                    self.parsing_news("stage", filename, destination_path)
+                self.parsing_news("prod", filename, destination_path)
+                self.parsing_news("stage", filename, destination_path)
 
-                    result["upload"] += 1
-                    os.remove(destination_path)
-                    result["delete"] += 1
-                    self.logger.info(f"DELETE process path {destination_path}")
+                result["upload"] += 1
+                os.remove(destination_path)
+                result["delete"] += 1
+                self.logger.info(f"DELETE process path {destination_path}")
 
                 os.remove(source_path)
                 result["delete"] += 1
