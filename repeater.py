@@ -129,7 +129,7 @@ def remove_old_files():
 
 def process_files(press_name):
     result = {"copy": 0, "upload": 0, "delete": 0}
-    file_direcotry = directory_path[press_name] if env["ENV"] else os.getcwd()
+    file_direcotry = directory_path[press_name]
     file_list = os.listdir(file_direcotry)
     process_directory = os.path.join(os.getcwd(), "process_files")
     os.makedirs(process_directory, exist_ok=True)
