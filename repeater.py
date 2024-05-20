@@ -49,7 +49,7 @@ def download_file(ftp, filename, filepath):
 
 def sync_press(press_name):
     now = datetime.now() + timedelta(hours=9)
-    fifteen_days_ago = now - timedelta(days=15)
+    threshold_time = now - timedelta(days=1)
 
     ftp_host = env["FTP_HOST"]
     ftp_port = int(env["FTP_PORT"])
@@ -67,15 +67,13 @@ def sync_press(press_name):
         try:
             publish_time = filename.split("_")[1]
             file_time = datetime.strptime(publish_time, "%Y%m%d%H%M%S")
+            process_filepath = os.path.join(os.getcwd(), "process_files", filename)
 
-            if file_time > fifteen_days_ago:
+            if file_time > threshold_time and not os.path.exists(process_filepath):
                 filepath = os.path.join(file_directory, filename)
                 download_file(ftp, filename, filepath)
             else:
                 filepath = os.path.join(file_directory, filename)
-                if os.path.exists(filepath):
-                    os.remove(filepath)
-                    logger.info("File", filename, "deleted")
         except Exception as e:
             logger.info("File", filename, "error:", e)
 
@@ -169,9 +167,9 @@ def process_files(press_name):
 def main():
     press_name = env["PRESS_NAME"]
     need_sync_press = ["mk", "fn"]
+    logger.info(f"Start {press_name} Repeater")
     if press_name in need_sync_press:
         sync_press(press_name)
-    logger.info(f"Start {press_name} Repeater")
     process_result = process_files(press_name)
     remove_result = remove_old_files()
     total_delete = process_result["delete"] + remove_result["delete"]
