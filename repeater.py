@@ -1,8 +1,8 @@
 import os
-from .config import env, directory_path
-from .ftp_sync import FTPManager
-from .file_utils import FileManager
-from .logger import LoggerSetup
+from module.config import env
+from module.ftp_sync import FTPManager
+from module.file_utils import FileManager
+from module.logger import LoggerSetup
 
 
 def main():
