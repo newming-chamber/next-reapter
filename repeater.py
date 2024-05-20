@@ -157,11 +157,12 @@ def process_files(press_name):
                 if now - modifited_time < 60 * 5:
                     object_name = f"origin_news/{press_name}/{filename}"
                     upload_file_to_s3(os.path.join(destination_path), object_name)
+                    logger.info(f"UPLOAD {filename} {object_name}")
 
                     for_stage = f"stage_news/{press_name}/{filename}"
                     upload_file_to_s3(os.path.join(destination_path), for_stage)
+                    logger.info(f"UPLOAD {filename} {for_stage}")
 
-                    logger.info(f"UPLOAD {filename} {object_name}")
                     result["upload"] += 1
 
             elif process_file_exist:
