@@ -10,6 +10,7 @@ import logging
 
 load_dotenv()
 env = os.environ
+kst = pytz.timezone("Asia/Seoul")
 directory_path = {
     "hi": "/home/hankookilbo",  # 한국일보
     "mk": "/home/mk",  # 매일경제
@@ -20,14 +21,25 @@ directory_path = {
     "hk": "/home/hankyung",  # 한국경제
 }
 base_path = directory_path
+today = datetime.now(kst).strftime("%Y-%m-%d")
+
+# 디렉토리 경로 설정
+directory_path = directory_path[env["PRESS_NAME"]]  # 기존에 정의된 directory_path 사용
+log_directory = os.path.join(directory_path, "next-repeater", "logs")
+
+# 디렉토리 생성
+os.makedirs(log_directory, exist_ok=True)
+
+# 로그 파일 이름 설정
+log_filename = os.path.join(log_directory, f"news_repeater_{today}.log")
+
+# 로그 설정
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
-    filename=f"{directory_path[env['PRESS_NAME']]}/next-repeater/news_repeater.log",
+    filename=log_filename,
 )
 logger = logging.getLogger(__name__)
-
-kst = pytz.timezone("Asia/Seoul")
 s3 = boto3.client(
     "s3",
     region_name=env.get("AWS_REGION", "ap-northeast-2"),
