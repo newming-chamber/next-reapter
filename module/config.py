@@ -20,7 +20,7 @@ directory_path = {
 kst = pytz.timezone("Asia/Seoul")
 now = datetime.now(kst)
 
-FTP_DOWNLOAD_THRESS_HOLD = now - timedelta(hours=10)
+FTP_DOWNLOAD_THRESS_HOLD = now - timedelta(hours=1)
 FTP_DELETED_THRESS_HOLD = now - timedelta(days=30 * 6)
 UPLOAD_THRESS_HOLD = now - timedelta(minutes=10)
 FILE_DELETE_THRESS_HOLD = now - timedelta(days=1)
