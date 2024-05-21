@@ -24,7 +24,7 @@ class FileManager:
             except Exception as e:
                 self.logger.info(f"File {filename} error: {e}")
 
-    def remove_old_files(self, process_directory, press_name):
+    def remove_old_files(self, process_directory):
         result = {"delete": 0}
         kst = pytz.timezone("Asia/Seoul")
         now = datetime.now(kst)
