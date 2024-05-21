@@ -1,10 +1,9 @@
 import os
 from ftplib import FTP
-from datetime import datetime, timedelta
+from datetime import datetime
 import pytz
 from .logger import LoggerSetup
 from .config import *
-from .file_utils import FileManager
 
 
 class FTPManager:
@@ -25,6 +24,7 @@ class FTPManager:
         self.logger.info(ftp.getwelcome())
 
         files = ftp.nlst()
+        self.logger.info(f"FTP File Count : {len(files)}")
         for filename in files:
             try:
                 if self.press_name == "mk":

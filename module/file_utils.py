@@ -32,12 +32,8 @@ class FileManager:
 
         for filename in os.listdir(process_directory):
             file_path = os.path.join(process_directory, filename)
-            if press_name == "mk":
-                publish_time = filename.split("_")[1]
-                file_mod_time = datetime.strptime(publish_time, "%Y%m%d%H%M%S")
-                file_mod_time = kst.localize(file_mod_time)
-            else:
-                file_mod_time = datetime.fromtimestamp(os.stat(file_path).st_mtime, kst)
+
+            file_mod_time = self.get_file_mod_time(file_path)
             if file_mod_time < threshold_time:
                 try:
                     os.remove(file_path)
@@ -65,13 +61,7 @@ class FileManager:
 
                 copy2(source_path, destination_path)
                 self.logger.info(f"COPY process path {filename}")
-                if self.press_name == "mk":
-                    publish_time = filename.split("_")[1]
-                    file_mod_time = datetime.strptime(publish_time, "%Y%m%d%H%M%S")
-                else:
-                    file_mod_time = datetime.fromtimestamp(
-                        os.stat(source_path).st_mtime, tz=pytz.timezone("Asia/Seoul")
-                    )
+                file_mod_time = self.get_file_mod_time(self.press_name, source_path)
 
                 if file_mod_time > UPLOAD_THRESS_HOLD:
                     self.parsing_news("prod", filename, destination_path)
@@ -99,3 +89,13 @@ class FileManager:
         )
         self.s3_manager.upload_file_to_s3(os.path.join(destination_path), object_name)
         self.logger.info(f"UPLOAD {filename} {object_name}")
+
+    def get_file_mod_time(self, file_path):
+        if self.press_name == "mk":
+            publish_time = file_path.split("_")[1]
+            publish_time = datetime.strptime(publish_time, "%Y%m%d%H%M%S")
+            return pytz.timezone("Asia/Seoul").localize(publish_time)
+        else:
+            return datetime.fromtimestamp(
+                os.stat(file_path).st_mtime, tz=pytz.timezone("Asia/Seoul")
+            )
