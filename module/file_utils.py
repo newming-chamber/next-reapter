@@ -92,7 +92,7 @@ class FileManager:
 
     def get_file_mod_time(self, file_path):
         if self.press_name == "mk":
-            publish_time = file_path.split("_")[1]
+            publish_time = file_path.split("/").pop().split("_")[1]
             publish_time = datetime.strptime(publish_time, "%Y%m%d%H%M%S")
             return pytz.timezone("Asia/Seoul").localize(publish_time)
         else:
