@@ -5,6 +5,26 @@ import pytz
 from .config import directory_path, env
 
 
+class KSTFormatter(logging.Formatter):
+    def converter(self, timestamp):
+        # Convert to KST timezone
+        kst = pytz.timezone("Asia/Seoul")
+        dt = datetime.fromtimestamp(timestamp, kst)
+        return dt.timetuple()
+
+    def formatTime(self, record, datefmt=None):
+        # Use the custom converter to get the time in KST
+        ct = self.converter(record.created)
+        if datefmt:
+            s = datetime.fromtimestamp(
+                record.created, pytz.timezone("Asia/Seoul")
+            ).strftime(datefmt)
+        else:
+            t = datetime.fromtimestamp(record.created, pytz.timezone("Asia/Seoul"))
+            s = t.strftime("%Y-%m-%d %H:%M:%S")
+        return s
+
+
 class LoggerSetup:
     def __init__(self, press_name):
         self.logger = self.setup_logging(press_name)
@@ -18,9 +38,15 @@ class LoggerSetup:
         os.makedirs(log_directory, exist_ok=True)
         log_filename = os.path.join(log_directory, f"news_repeater_{today}.log")
 
-        logging.basicConfig(
-            level=logging.INFO,
-            format="%(asctime)s - %(levelname)s - %(message)s",
-            filename=log_filename,
-        )
-        return logging.getLogger(press_name)
+        handler = logging.FileHandler(log_filename)
+        handler.setLevel(logging.INFO)
+
+        # Use the KSTFormatter
+        formatter = KSTFormatter("%(asctime)s - %(levelname)s - %(message)s")
+        handler.setFormatter(formatter)
+
+        logger = logging.getLogger(press_name)
+        logger.setLevel(logging.INFO)
+        logger.addHandler(handler)
+
+        return logger

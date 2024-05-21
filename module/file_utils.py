@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import pytz
 from .logger import LoggerSetup
 from .s3_utils import S3Manager
-from .config import directory_path
+from .config import directory_path, UPLOAD_THRESS_HOLD
 
 
 class FileManager:
@@ -41,9 +41,7 @@ class FileManager:
             if file_mod_time < threshold_time:
                 try:
                     os.remove(file_path)
-                    self.logger.info(
-                        f"REMOVE {file_path} (modified at {file_mod_time})"
-                    )
+                    self.logger.info(f"REMOVE {file_path} modified at {file_mod_time}")
                     result["delete"] += 1
                 except Exception as e:
                     self.logger.error(f"Error removing file {file_path}: {e}")
@@ -59,6 +57,7 @@ class FileManager:
             file_list = [i for i in file_list if i.startswith("mk")]
         else:
             file_list = [i for i in file_list if i.endswith(".xml")]
+
         for filename in file_list:
             try:
                 source_path = os.path.join(self.directory_path, filename)
@@ -71,14 +70,14 @@ class FileManager:
                     file_mod_time = datetime.strptime(publish_time, "%Y%m%d%H%M%S")
                 else:
                     file_mod_time = datetime.fromtimestamp(
-                        os.stat(source_path).st_mtime
+                        os.stat(source_path).st_mtime, tz=pytz.timezone("Asia/Seoul")
                     )
 
-                threshold_time = datetime.now() - timedelta(minutes=10)
-                if file_mod_time > threshold_time:
+                if file_mod_time > UPLOAD_THRESS_HOLD:
                     self.parsing_news("prod", filename, destination_path)
                     self.parsing_news("stage", filename, destination_path)
                     result["upload"] += 1
+
                 os.remove(destination_path)
                 result["delete"] += 1
                 self.logger.info(f"DELETE process path {destination_path}")
