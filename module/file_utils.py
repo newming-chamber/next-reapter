@@ -72,7 +72,7 @@ class FileManager:
                 result["delete"] += 1
                 self.logger.info(f"DELETE process path {destination_path}")
 
-                # os.remove(source_path)
+                os.remove(source_path)
                 result["delete"] += 1
                 self.logger.info(f"DELETE origin path {source_path}")
 
