@@ -1,4 +1,5 @@
 import os
+from shutil import copy2
 from ftplib import FTP
 from datetime import datetime
 import pytz
@@ -40,7 +41,13 @@ class FTPManager:
                 )
                 is_downloaded = os.path.exists(filepath)
                 if not is_downloaded and file_time > FTP_DOWNLOAD_THRESS_HOLD:
-                    self.file_manager.download_file(ftp, filename, filepath)
+                    self.file_manager.download_file(
+                        ftp, filename, self.file_manager.directory_path
+                    )
+                    copy2(
+                        os.path.join(self.file_manager.directory_path, filename),
+                        filepath,
+                    )
 
                 if file_time < FTP_DELETED_THRESS_HOLD:
                     ftp.delete(filename)
