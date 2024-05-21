@@ -61,7 +61,7 @@ class FileManager:
 
                 copy2(source_path, destination_path)
                 self.logger.info(f"COPY process path {filename}")
-                file_mod_time = self.get_file_mod_time(self.press_name, source_path)
+                file_mod_time = self.get_file_mod_time(source_path)
 
                 if file_mod_time > UPLOAD_THRESS_HOLD:
                     self.parsing_news("prod", filename, destination_path)
