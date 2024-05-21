@@ -26,7 +26,6 @@ class FileManager:
 
     def remove_old_files(self, process_directory, press_name):
         result = {"delete": 0}
-        process_directory = os.path.join(os.getcwd(), "process_files")
         kst = pytz.timezone("Asia/Seoul")
         now = datetime.now(kst)
         threshold_time = now - timedelta(days=1)
@@ -34,11 +33,11 @@ class FileManager:
         for filename in os.listdir(process_directory):
             file_path = os.path.join(process_directory, filename)
             if press_name == "mk":
-                file_mod_time = datetime.fromtimestamp(os.stat(file_path).st_mtime, kst)
-            else:
                 publish_time = filename.split("_")[1]
                 file_mod_time = datetime.strptime(publish_time, "%Y%m%d%H%M%S")
                 file_mod_time = kst.localize(file_mod_time)
+            else:
+                file_mod_time = datetime.fromtimestamp(os.stat(file_path).st_mtime, kst)
             if file_mod_time < threshold_time:
                 try:
                     os.remove(file_path)
@@ -60,26 +59,31 @@ class FileManager:
             file_list = [i for i in file_list if i.startswith("mk")]
         else:
             file_list = [i for i in file_list if i.endswith(".xml")]
-
         for filename in file_list:
             try:
                 source_path = os.path.join(self.directory_path, filename)
                 destination_path = os.path.join(process_directory, filename)
 
                 copy2(source_path, destination_path)
+                self.logger.info(f"COPY process path {filename}")
+                if self.press_name == "mk":
+                    publish_time = filename.split("_")[1]
+                    file_mod_time = datetime.strptime(publish_time, "%Y%m%d%H%M%S")
+                else:
+                    file_mod_time = datetime.fromtimestamp(
+                        os.stat(source_path).st_mtime
+                    )
 
-                file_mod_time = datetime.fromtimestamp(os.stat(source_path).st_mtime)
                 threshold_time = datetime.now() - timedelta(minutes=10)
                 if file_mod_time > threshold_time:
                     self.parsing_news("prod", filename, destination_path)
                     self.parsing_news("stage", filename, destination_path)
                     result["upload"] += 1
-
                 os.remove(destination_path)
                 result["delete"] += 1
                 self.logger.info(f"DELETE process path {destination_path}")
 
-                os.remove(source_path)
+                # os.remove(source_path)
                 result["delete"] += 1
                 self.logger.info(f"DELETE origin path {source_path}")
 
