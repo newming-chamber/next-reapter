@@ -30,6 +30,10 @@ class LoggerSetup:
         self.logger = self.setup_logging(press_name)
 
     def setup_logging(self, press_name):
+        logger = logging.getLogger(press_name)
+        if logger.hasHandlers():
+            logger.handlers.clear()  # Remove all handlers associated with the logger
+
         kst = pytz.timezone("Asia/Seoul")
         today = datetime.now(kst).strftime("%Y-%m-%d")
         log_directory = os.path.join(
@@ -45,7 +49,6 @@ class LoggerSetup:
         formatter = KSTFormatter("%(asctime)s - %(levelname)s - %(message)s")
         handler.setFormatter(formatter)
 
-        logger = logging.getLogger(press_name)
         logger.setLevel(logging.INFO)
         logger.addHandler(handler)
 
