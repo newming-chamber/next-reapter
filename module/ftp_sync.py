@@ -39,14 +39,17 @@ class FTPManager:
                 filepath = os.path.join(
                     self.file_manager.directory_path, "origin_files", filename
                 )
-                # download_path = os.path.join(self.file_manager.directory_path, filename)
                 is_downloaded = os.path.exists(filepath)
                 if not is_downloaded and file_time > FTP_DOWNLOAD_THRESS_HOLD:
                     self.file_manager.download_file(ftp, filename, filepath)
+                    copy2(
+                        src=filepath,
+                        dst=os.path.join(self.file_manager.directory_path, filename),
+                    )
 
-                # if file_time < FTP_DELETED_THRESS_HOLD:
-                #     ftp.delete(filename)
-                #     self.logger.info(f"FTP File {filename} deleted")
+                if file_time < FTP_DELETED_THRESS_HOLD:
+                    ftp.delete(filename)
+                    self.logger.info(f"FTP File {filename} deleted")
 
             except Exception as e:
                 self.logger.info(f"File {filename} error: {e}")
