@@ -68,14 +68,16 @@ class FileManager:
                 file_mod_time = self.get_file_mod_time(source_path)
 
                 if file_mod_time > UPLOAD_THRESS_HOLD:
+                    if self.press_name == "fn":
+                        filename = filename.replace(".tmp", "")
                     self.parsing_news("prod", filename, destination_path)
                     self.parsing_news("stage", filename, destination_path)
                     upload_list.append(filename)
 
                 os.remove(destination_path)
                 self.logger.info(f"DELETE process path {destination_path}")
-                self.backup_files(source_path)
-                os.remove(source_path)
+                self.backup_files(filename)
+                # os.remove(source_path)
 
             except Exception as e:
                 self.logger.error(f"Error: {self.press_name} {filename} {e}")
@@ -103,11 +105,11 @@ class FileManager:
 
     def backup_files(self, filename):
         origin_path = os.path.join(self.directory_path, filename)
-        backup_directory = os.path.join(self.directory_path, "origin_files")
+        backup_path = os.path.join(self.directory_path, "origin_files")
 
         # Ensure the backup directory exists
-        os.makedirs(backup_directory, exist_ok=True)
+        os.makedirs(backup_path, exist_ok=True)
+        backup_path = os.path.join(backup_path, filename)
 
-        backup_path = os.path.join(backup_directory, filename)
-        os.rename(origin_path, backup_path)
-        self.logger.info(f"BACKUP {origin_path} -> {backup_path}")
+        copy2(origin_path, backup_path)
+        self.logger.info(f"BACKUP {origin_path} => {backup_path}")
