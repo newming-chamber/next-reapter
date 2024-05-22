@@ -60,6 +60,7 @@ class FileManager:
                 destination_path = os.path.join(process_directory, filename)
 
                 copy2(source_path, destination_path)
+                self.backup_files(filename)
                 self.logger.info(f"COPY process path {filename}")
                 file_mod_time = self.get_file_mod_time(source_path)
 
@@ -99,3 +100,9 @@ class FileManager:
             return datetime.fromtimestamp(
                 os.stat(file_path).st_mtime, tz=pytz.timezone("Asia/Seoul")
             )
+
+    def backup_files(self, filename):
+        origin_path = os.path.join(self.directory_path, filename)
+        backup_path = os.path.join(self.directory_path, "origin_files", filename)
+        copy2(origin_path, backup_path)
+        self.logger.info(f"BACKUP {filename}")
