@@ -29,27 +29,33 @@ class FTPManager:
         for filename in files:
             try:
                 if self.press_name == "mk":
+                    if not filename.startswith("mk"):
+                        continue
+
                     publish_time = filename.split("_")[1]
                     file_time = datetime.strptime(publish_time, "%Y%m%d%H%M%S")
                     file_time = kst.localize(file_time)
                 else:
-                    file_time = datetime.fromtimestamp(
-                        ftp.sendcmd(f"MDTM {filename}")[4:], kst
-                    )
-                filepath = os.path.join(
+                    if not filename.endswith(".xml") and not (
+                        self.press_name == "fn" and filename.endswith(".xml.tmp")
+                    ):
+                        continue
+                    modified_time = ftp.sendcmd(f"MDTM {filename}")[4:]
+                    file_time = datetime.strptime(
+                        modified_time, "%Y%m%d%H%M%S"
+                    ) + timedelta(hours=9)
+                    file_time = kst.localize(file_time)
+                backup_path = os.path.join(
                     self.file_manager.directory_path, "origin_files", filename
                 )
-                is_downloaded = os.path.exists(filepath)
+                download_path = os.path.join(self.file_manager.directory_path, filename)
+                is_downloaded = os.path.exists(backup_path)
                 if not is_downloaded and file_time > FTP_DOWNLOAD_THRESS_HOLD:
-                    self.file_manager.download_file(ftp, filename, filepath)
-                    copy2(
-                        src=filepath,
-                        dst=os.path.join(self.file_manager.directory_path, filename),
-                    )
+                    self.file_manager.download_file(ftp, filename, download_path)
 
-                if file_time < FTP_DELETED_THRESS_HOLD:
-                    ftp.delete(filename)
-                    self.logger.info(f"FTP File {filename} deleted")
+                # if file_time < FTP_DELETED_THRESS_HOLD:
+                #     ftp.delete(filename)
+                #     self.logger.info(f"FTP File {filename} deleted")
 
             except Exception as e:
                 self.logger.info(f"File {filename} error: {e}")

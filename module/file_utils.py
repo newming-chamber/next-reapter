@@ -51,6 +51,10 @@ class FileManager:
 
         if self.press_name == "mk":
             file_list = [i for i in file_list if i.startswith("mk")]
+        elif self.press_name == "fn":
+            file_list = [
+                i for i in file_list if i.endswith(".xml") or i.endswith(".xml.tmp")
+            ]
         else:
             file_list = [i for i in file_list if i.endswith(".xml")]
 
@@ -60,7 +64,6 @@ class FileManager:
                 destination_path = os.path.join(process_directory, filename)
 
                 copy2(source_path, destination_path)
-                # self.backup_files(filename)
                 self.logger.info(f"COPY process path {filename}")
                 file_mod_time = self.get_file_mod_time(source_path)
 
@@ -72,10 +75,11 @@ class FileManager:
                 os.remove(destination_path)
                 result["delete"] += 1
                 self.logger.info(f"DELETE process path {destination_path}")
+                self.backup_files(source_path)
 
-                os.remove(source_path)
-                result["delete"] += 1
-                self.logger.info(f"DELETE origin path {source_path}")
+                # os.remove(source_path)
+                # result["delete"] += 1
+                # self.logger.info(f"DELETE origin path {source_path}")
 
             except Exception as e:
                 self.logger.error(f"Error: {self.press_name} {filename} {e}")
@@ -101,8 +105,13 @@ class FileManager:
                 os.stat(file_path).st_mtime, tz=pytz.timezone("Asia/Seoul")
             )
 
-    # def backup_files(self, filename):
-    #     origin_path = os.path.join(self.directory_path, filename)
-    #     backup_path = os.path.join(self.directory_path, "origin_files", filename)
-    #     copy2(origin_path, backup_path)
-    #     self.logger.info(f"BACKUP {filename}")
+    def backup_files(self, filename):
+        origin_path = os.path.join(self.directory_path, filename)
+        backup_directory = os.path.join(self.directory_path, "origin_files")
+
+        # Ensure the backup directory exists
+        os.makedirs(backup_directory, exist_ok=True)
+
+        backup_path = os.path.join(backup_directory, filename)
+        os.rename(origin_path, backup_path)
+        self.logger.info(f"BACKUP {origin_path} -> {backup_path}")

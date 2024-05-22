@@ -19,9 +19,9 @@ def main():
         ftp_manager.sync_press()
 
     process_result = file_manager.process_files()
-    process_directory = os.path.join(os.getcwd(), "process_files")
+    process_directory = os.path.join(os.getcwd(), "origin_files")
     remove_result = file_manager.remove_old_files(process_directory)
-    total_delete = process_result["delete"] + remove_result["delete"]
+    total_delete = remove_result["delete"]
 
     combined_result = {
         "copy": process_result["copy"],
