@@ -25,7 +25,7 @@ class FileManager:
                 self.logger.info(f"File {filename} error: {e}")
 
     def remove_old_files(self, process_directory):
-        result = {"delete": 0}
+        delete_result = []
         kst = pytz.timezone("Asia/Seoul")
         now = datetime.now(kst)
         threshold_time = now - timedelta(days=1)
@@ -38,13 +38,13 @@ class FileManager:
                 try:
                     os.remove(file_path)
                     self.logger.info(f"REMOVE {file_path} modified at {file_mod_time}")
-                    result["delete"] += 1
+                    delete_result.append(filename)
                 except Exception as e:
                     self.logger.error(f"Error removing file {file_path}: {e}")
-        return result
+        return delete_result
 
     def process_files(self):
-        result = {"copy": 0, "upload": 0, "delete": 0}
+        upload_list = []
         file_list = os.listdir(self.directory_path)
         process_directory = os.path.join(os.getcwd(), "process_files")
         os.makedirs(process_directory, exist_ok=True)
@@ -70,21 +70,16 @@ class FileManager:
                 if file_mod_time > UPLOAD_THRESS_HOLD:
                     self.parsing_news("prod", filename, destination_path)
                     self.parsing_news("stage", filename, destination_path)
-                    result["upload"] += 1
+                    upload_list.append(filename)
 
                 os.remove(destination_path)
-                result["delete"] += 1
                 self.logger.info(f"DELETE process path {destination_path}")
                 self.backup_files(source_path)
-
-                # os.remove(source_path)
-                # result["delete"] += 1
-                # self.logger.info(f"DELETE origin path {source_path}")
 
             except Exception as e:
                 self.logger.error(f"Error: {self.press_name} {filename} {e}")
 
-        return result
+        return upload_list
 
     def parsing_news(self, env, filename, destination_path):
         object_name = (

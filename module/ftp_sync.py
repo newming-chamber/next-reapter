@@ -18,6 +18,7 @@ class FTPManager:
         self.logger = LoggerSetup(press_name).logger
 
     def sync_press(self):
+        download_list = []
         kst = pytz.timezone("Asia/Seoul")
         ftp = FTP()
         ftp.connect(self.ftp_host, self.ftp_port)
@@ -52,7 +53,7 @@ class FTPManager:
                 is_downloaded = os.path.exists(backup_path)
                 if not is_downloaded and file_time > FTP_DOWNLOAD_THRESS_HOLD:
                     self.file_manager.download_file(ftp, filename, download_path)
-
+                    download_list.append(filename)
                 # if file_time < FTP_DELETED_THRESS_HOLD:
                 #     ftp.delete(filename)
                 #     self.logger.info(f"FTP File {filename} deleted")
@@ -61,3 +62,4 @@ class FTPManager:
                 self.logger.info(f"File {filename} error: {e}")
 
         ftp.close()
+        return download_list

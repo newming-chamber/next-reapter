@@ -13,21 +13,23 @@ def main():
 
     file_manager = FileManager(press_name)
 
+    download_result = []
     need_sync_press = ["mk", "fn"]
     if press_name in need_sync_press:
         ftp_manager = FTPManager(press_name, file_manager)
-        ftp_manager.sync_press()
+        download_result = ftp_manager.sync_press()
 
     process_result = file_manager.process_files()
     process_directory = os.path.join(os.getcwd(), "origin_files")
     remove_result = file_manager.remove_old_files(process_directory)
-    total_delete = remove_result["delete"]
 
     combined_result = {
-        "copy": process_result["copy"],
-        "upload": process_result["upload"],
-        "delete": total_delete,
+        "upload": len(process_result),
+        "delete": len(remove_result),
     }
+    if press_name in need_sync_press:
+        combined_result["download"] = len(download_result)
+
     print(combined_result)
 
 
