@@ -24,3 +24,5 @@ FTP_DOWNLOAD_THRESS_HOLD = now - timedelta(days=7 * 2)
 FTP_DELETED_THRESS_HOLD = now - timedelta(days=30 * 6)
 UPLOAD_THRESS_HOLD = now - timedelta(minutes=30)
 FILE_DELETE_THRESS_HOLD = now - timedelta(days=1)
+
+ORIGIN_FILE_DELETE = True

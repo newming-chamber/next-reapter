@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import pytz
 from .logger import LoggerSetup
 from .s3_utils import S3Manager
-from .config import directory_path, UPLOAD_THRESS_HOLD
+from .config import directory_path, UPLOAD_THRESS_HOLD, ORIGIN_FILE_DELETE
 
 
 class FileManager:
@@ -78,7 +78,9 @@ class FileManager:
                 os.remove(destination_path)
                 self.logger.info(f"DELETE process path {destination_path}")
                 self.backup_files(filename)
-                os.remove(source_path)
+
+                if ORIGIN_FILE_DELETE:
+                    os.remove(source_path)
 
             except Exception as e:
                 self.logger.error(f"Error: {self.press_name} {filename} {e}")
