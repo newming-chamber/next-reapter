@@ -28,6 +28,9 @@ class FTPManager:
         files = ftp.nlst()
         self.logger.info(f"FTP File Count : {len(files)}")
         for filename in files:
+            if len(download_list) > 100:
+                self.logger.info("Downloaded file count is over 100")
+                break
             try:
                 if self.press_name == "mk":
                     if not filename.startswith("mk"):
@@ -47,17 +50,16 @@ class FTPManager:
                     ) + timedelta(hours=9)
                     file_time = kst.localize(file_time)
 
-                filepath = os.path.join(
+                filepath = os.path.join(self.file_manager.directory_path, filename)
+                is_downloaded = os.path.exists(filepath)
+                process_file_path = os.path.join(
                     self.file_manager.directory_path, "origin_files", filename
                 )
-                is_downloaded = os.path.exists(filepath)
-                if not is_downloaded and file_time > FTP_DOWNLOAD_THRESS_HOLD:
-                    self.file_manager.download_file(ftp, filename, filepath)
-                    copy2(
-                        src=filepath,
-                        dst=os.path.join(self.file_manager.directory_path, filename),
-                    )
-                    download_list.append(filename)
+                is_processed = os.path.exists(process_file_path)
+                if file_time > FTP_DOWNLOAD_THRESS_HOLD:
+                    if not (is_downloaded or is_processed):
+                        self.file_manager.download_file(ftp, filename, filepath)
+                        download_list.append(filename)
 
                 # if file_time < FTP_DELETED_THRESS_HOLD:
                 #     ftp.delete(filename)
