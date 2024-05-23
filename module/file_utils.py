@@ -68,7 +68,7 @@ class FileManager:
                 file_mod_time = self.get_file_mod_time(source_path)
 
                 is_procceed = os.path.exists(
-                    self.directory_path, "origin_files", filename
+                    os.path.join(self.directory_path, "origin_files", filename)
                 )
                 if file_mod_time > UPLOAD_THRESS_HOLD and not is_procceed:
                     self.parsing_news("prod", filename, destination_path)
