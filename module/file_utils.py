@@ -68,8 +68,6 @@ class FileManager:
                 file_mod_time = self.get_file_mod_time(source_path)
 
                 if file_mod_time > UPLOAD_THRESS_HOLD:
-                    if self.press_name == "fn":
-                        filename = filename.replace(".tmp", "")
                     self.parsing_news("prod", filename, destination_path)
                     self.parsing_news("stage", filename, destination_path)
                     upload_list.append(filename)
@@ -77,7 +75,7 @@ class FileManager:
                 os.remove(destination_path)
                 self.logger.info(f"DELETE process path {destination_path}")
                 self.backup_files(filename)
-                # os.remove(source_path)
+                os.remove(source_path)
 
             except Exception as e:
                 self.logger.error(f"Error: {self.press_name} {filename} {e}")
@@ -85,6 +83,8 @@ class FileManager:
         return upload_list
 
     def parsing_news(self, env, filename, destination_path):
+        if self.press_name == "fn":
+            filename = filename.replace(".tmp", "")
         object_name = (
             f"origin_news/{self.press_name}/{filename}"
             if env == "prod"
