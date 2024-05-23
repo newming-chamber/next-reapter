@@ -14,10 +14,10 @@ def main():
     file_manager = FileManager(press_name)
 
     download_result = []
-    need_sync_press = ["mk", "fn"]
-    if press_name in need_sync_press:
-        ftp_manager = FTPManager(press_name, file_manager)
-        download_result = ftp_manager.sync_press()
+    # need_sync_press = ["mk", "fn"]
+    # if press_name in need_sync_press:
+    #     ftp_manager = FTPManager(press_name, file_manager)
+    #     download_result = ftp_manager.sync_press()
 
     process_result = file_manager.process_files()
     process_directory = os.path.join(os.getcwd(), "origin_files")
@@ -27,8 +27,8 @@ def main():
         "upload": len(process_result),
         "delete": len(remove_result),
     }
-    if press_name in need_sync_press:
-        combined_result["download"] = len(download_result)
+    # if press_name in need_sync_press:
+    #     combined_result["download"] = len(download_result)
 
     print(combined_result)
 

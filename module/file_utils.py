@@ -67,15 +67,18 @@ class FileManager:
                 self.logger.info(f"COPY process path {filename}")
                 file_mod_time = self.get_file_mod_time(source_path)
 
-                if file_mod_time > UPLOAD_THRESS_HOLD:
+                is_procceed = os.path.exists(
+                    self.directory_path, "origin_files", filename
+                )
+                if file_mod_time > UPLOAD_THRESS_HOLD and not is_procceed:
                     self.parsing_news("prod", filename, destination_path)
                     self.parsing_news("stage", filename, destination_path)
                     upload_list.append(filename)
 
                 os.remove(destination_path)
                 self.logger.info(f"DELETE process path {destination_path}")
-                # self.backup_files(filename)
-                os.remove(source_path)
+                self.backup_files(filename)
+                # os.remove(source_path)
 
             except Exception as e:
                 self.logger.error(f"Error: {self.press_name} {filename} {e}")
