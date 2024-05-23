@@ -74,7 +74,7 @@ class FileManager:
 
                 os.remove(destination_path)
                 self.logger.info(f"DELETE process path {destination_path}")
-                self.backup_files(filename)
+                # self.backup_files(filename)
                 os.remove(source_path)
 
             except Exception as e:
