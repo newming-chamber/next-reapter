@@ -21,11 +21,11 @@ def main():
 
     process_result = file_manager.process_files()
     process_directory = os.path.join(os.getcwd(), "origin_files")
-    remove_result = file_manager.remove_old_files(process_directory)
+    # remove_result = file_manager.remove_old_files(process_directory)
 
     combined_result = {
         "upload": len(process_result),
-        "delete": len(remove_result),
+        # "delete": len(remove_result),
     }
     # if press_name in need_sync_press:
     #     combined_result["download"] = len(download_result)
