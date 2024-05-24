@@ -20,7 +20,7 @@ class FileManager:
                 os.makedirs(os.path.dirname(filepath), exist_ok=True)
                 with open(filepath, "wb") as f:
                     ftp.retrbinary("RETR " + filename, f.write)
-                self.logger.info(f"File {filename} downloaded")
+                self.logger.info(f"DOWNLOAD {filename}")
             except Exception as e:
                 self.logger.info(f"File {filename} error: {e}")
 
