@@ -81,7 +81,7 @@ class FileManager:
 
                 if ORIGIN_FILE_DELETE:
                     os.remove(source_path)
-                    self.logger.info("DELETE origin path {source_path}")
+                    self.logger.info(f"DELETE origin path {source_path}")
 
             except Exception as e:
                 self.logger.error(f"Error: {self.press_name} {filename} {e}")
