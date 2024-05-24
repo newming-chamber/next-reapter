@@ -80,7 +80,7 @@ class FileManager:
                 self.backup_files(filename)
 
                 if ORIGIN_FILE_DELETE:
-                    self.logger.ifno("DELETE origin path {source_path}")
+                    self.logger.info("DELETE origin path {source_path}")
                     os.remove(source_path)
 
             except Exception as e:
