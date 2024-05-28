@@ -51,12 +51,10 @@ class FileManager:
 
         if self.press_name == "mk":
             file_list = [i for i in file_list if i.startswith("mk")]
-            file_list.sort(key=lambda x: x.split("_")[1])
         elif self.press_name == "fn":
             file_list = [
                 i for i in file_list if i.endswith(".xml") or i.endswith(".xml.tmp")
             ]
-            file_list.sort(key=lambda x: (x.endswith(".tmp"), x))
         else:
             file_list = [i for i in file_list if i.endswith(".xml")]
 
@@ -67,7 +65,7 @@ class FileManager:
 
                 copy2(source_path, destination_path)
                 self.logger.info(f"COPY process path {filename}")
-                # file_mod_time = self.get_file_mod_time(source_path)
+                file_mod_time = self.get_file_mod_time(source_path)
 
                 # is_procceed = os.path.exists(
                 #     os.path.join(self.directory_path, "origin_files", filename)
@@ -107,7 +105,7 @@ class FileManager:
             publish_time = datetime.strptime(publish_time, "%Y%m%d%H%M%S")
             return pytz.timezone("Asia/Seoul").localize(publish_time)
         else:
-            return datetime.(
+            return datetime.fromtimestamp(
                 os.stat(file_path).st_mtime, tz=pytz.timezone("Asia/Seoul")
             )
 
