@@ -37,9 +37,6 @@ class FTPManager:
                     if not filename.startswith("mk"):
                         continue
 
-                    publish_time = filename.split("_")[1]
-                    file_time = datetime.strptime(publish_time, "%Y%m%d%H%M%S")
-                    file_time = kst.localize(file_time)
                 else:
                     if not filename.endswith(".xml") and not (
                         self.press_name == "fn" and filename.endswith(".xml.tmp")
