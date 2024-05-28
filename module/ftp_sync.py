@@ -27,6 +27,7 @@ class FTPManager:
 
         files = ftp.nlst()
         self.logger.info(f"FTP File Count : {len(files)}")
+        delete_count = 0
         for filename in files:
             if len(download_list) > 100:
                 self.logger.info("Downloaded file count is over 100")
@@ -60,6 +61,8 @@ class FTPManager:
                     if not (is_downloaded or is_processed):
                         self.file_manager.download_file(ftp, filename, filepath)
                         download_list.append(filename)
+                    elif is_processed:
+                        delete_count += 1
 
                 # if file_time < FTP_DELETED_THRESS_HOLD:
                 #     ftp.delete(filename)
@@ -67,6 +70,6 @@ class FTPManager:
 
             except Exception as e:
                 self.logger.info(f"File {filename} error: {e}")
-
+        self.logger.info(f"Check delete Count : {delete_count}")
         ftp.close()
         return download_list
