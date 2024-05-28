@@ -45,25 +45,27 @@ class FTPManager:
                         self.press_name == "fn" and filename.endswith(".xml.tmp")
                     ):
                         continue
-                    modified_time = ftp.sendcmd(f"MDTM {filename}")[4:]
-                    file_time = datetime.strptime(
-                        modified_time, "%Y%m%d%H%M%S"
-                    ) + timedelta(hours=9)
-                    file_time = kst.localize(file_time)
-
                 filepath = os.path.join(self.file_manager.directory_path, filename)
-                is_downloaded = os.path.exists(filepath)
-                process_file_path = os.path.join(
-                    self.file_manager.directory_path, "origin_files", filename
-                )
-                is_processed = os.path.exists(process_file_path)
-                if file_time > FTP_DOWNLOAD_THRESS_HOLD:
-                    if not (is_downloaded or is_processed):
-                        self.file_manager.download_file(ftp, filename, filepath)
-                        download_list.append(filename)
+                self.file_manager.download_file(ftp, filename, filepath)
+                download_list.append(filename)
+
                 self.logger.info("DELETE FTP File : " + filename)
                 ftp.delete(filename)
                 delete_count += 1
+
+                # modified_time = ftp.sendcmd(f"MDTM {filename}")[4:]
+                # file_time = datetime.strptime(
+                #     modified_time, "%Y%m%d%H%M%S"
+                # ) + timedelta(hours=9)
+                # file_time = kst.localize(file_time)
+
+                # is_downloaded = os.path.exists(filepath)
+                # process_file_path = os.path.join(
+                #     self.file_manager.directory_path, "origin_files", filename
+                # )
+                # is_processed = os.path.exists(process_file_path)
+                # if file_time > FTP_DOWNLOAD_THRESS_HOLD:
+                #     if not (is_downloaded or is_processed):
 
                 # if file_time < FTP_DELETED_THRESS_HOLD:
                 #     ftp.delete(filename)
