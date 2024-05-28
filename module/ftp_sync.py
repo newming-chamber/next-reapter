@@ -61,8 +61,9 @@ class FTPManager:
                     if not (is_downloaded or is_processed):
                         self.file_manager.download_file(ftp, filename, filepath)
                         download_list.append(filename)
-                    elif is_processed:
-                        delete_count += 1
+                self.logger.info("DELETE FTP File : " + filename)
+                ftp.delete(filename)
+                delete_count += 1
 
                 # if file_time < FTP_DELETED_THRESS_HOLD:
                 #     ftp.delete(filename)
