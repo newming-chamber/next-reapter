@@ -89,8 +89,8 @@ class FileManager:
         return upload_list
 
     def parsing_news(self, env, filename, destination_path):
-        if self.press_name == "fn":
-            filename = filename.replace(".tmp", "")
+        # if self.press_name == "fn":
+        # filename = filename.replace(".tmp", "")
         object_name = (
             f"origin_news/{self.press_name}/{filename}"
             if env == "prod"
