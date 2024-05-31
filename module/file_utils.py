@@ -61,6 +61,10 @@ class FileManager:
             file_list = [i for i in file_list if i.endswith(".xml")]
 
         for filename in file_list:
+            initial_size = os.path.getsize(os.path.join(self.directory_path, filename))
+            if initial_size == 0:
+                self.logger.info(f"EMPTY file {filename}")
+                continue
             try:
                 source_path = os.path.join(self.directory_path, filename)
                 destination_path = os.path.join(process_directory, filename)
@@ -84,6 +88,16 @@ class FileManager:
                 if ORIGIN_FILE_DELETE:
                     os.remove(source_path)
                     self.logger.info(f"DELETE origin path {source_path}")
+
+                check_size = os.path.getsize(
+                    os.path.join(self.directory_path, filename)
+                )
+
+                if check_size != initial_size:
+                    self.logger.error(
+                        f"Size changed {filename} {initial_size} => {check_size}"
+                    )
+                    self.rollback_files(filename)
 
             except Exception as e:
                 self.logger.error(f"Error: {self.press_name} {filename} {e}")
@@ -121,3 +135,10 @@ class FileManager:
 
         copy2(origin_path, backup_path)
         self.logger.info(f"BACKUP {origin_path} => {backup_path}")
+
+    def rollback_files(self, filename):
+        origin_path = os.path.join(self.directory_path, filename)
+        backup_path = os.path.join(self.directory_path, "origin_files", filename)
+
+        copy2(backup_path, origin_path)
+        self.logger.info(f"ROLLBACK {backup_path} => {origin_path}")
