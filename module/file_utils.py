@@ -90,7 +90,7 @@ class FileManager:
                     self.logger.info(f"DELETE origin path {source_path}")
 
                 check_size = os.path.getsize(
-                    os.path.join(self.directory_path, filename)
+                    os.path.join(self.directory_path, "origin_files", filename)
                 )
 
                 if check_size != initial_size:
