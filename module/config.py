@@ -15,6 +15,7 @@ directory_path = {
     "ja": "/home/joongang",
     "kh": "/home/khan",
     "hk": "/home/hankyung",
+    "sc": "/home/sportschosun",
 }
 
 kst = pytz.timezone("Asia/Seoul")
