@@ -1,4 +1,3 @@
-import os
 from module.config import env
 from module.ftp_sync import FTPManager
 from module.file_utils import FileManager
@@ -21,12 +20,13 @@ def main():
             download_result = ftp_manager.sync_press()
 
         process_result = file_manager.process_files()
-        # process_directory = os.path.join(os.getcwd(), "origin_files")
-        # remove_result = file_manager.remove_old_files(process_directory)
+        # 현재는 이미지(.jpg)만 회수한다.
+        # XML 백업 회수는 누적 규모를 확인한 뒤 별도로 결정한다.
+        remove_result = file_manager.remove_old_files(extensions=(".jpg",))
 
         combined_result = {
             "upload": len(process_result),
-            # "delete": len(remove_result),
+            "delete": len(remove_result),
         }
         if press_name in need_sync_press:
             combined_result["download"] = len(download_result)
