@@ -139,11 +139,26 @@ class FileManager:
                         f"Size changed {filename} {initial_size} => {check_size}"
                     )
                     self.rollback_files(filename)
+                elif filename.lower().endswith(".jpg"):
+                    # 이미지는 재처리 대상이 아니고 원본이 S3에 있으므로 로컬 사본을 두지 않는다.
+                    # 자정 rsync(/backup 미러)가 복사하기 전에 지워야 서버 디스크에 누적되지 않는다.
+                    self.remove_image_backup(filename)
 
             except Exception as e:
                 self.logger.error(f"Error: {self.press_name} {filename} {e}")
 
         return upload_list
+
+    def remove_image_backup(self, filename):
+        """S3 적재가 확인된 이미지의 origin_files 사본을 즉시 삭제한다."""
+        backup_path = os.path.join(self.directory_path, "origin_files", filename)
+        object_name = self.build_object_name(filename, "prod")
+        if not self.s3_manager.s3_object_exists(object_name):
+            self.logger.error(f"KEEP image backup, not found on S3 {object_name}")
+            return False
+        os.remove(backup_path)
+        self.logger.info(f"REMOVE image backup {backup_path}")
+        return True
 
     def build_object_name(self, filename, env):
         # 이미지는 origin_news/{press}/images/ 하위에 둔다.

@@ -20,8 +20,9 @@ def main():
             download_result = ftp_manager.sync_press()
 
         process_result = file_manager.process_files()
-        # 현재는 이미지(.jpg)만 회수한다.
-        # XML 백업 회수는 누적 규모를 확인한 뒤 별도로 결정한다.
+        # 이미지(.jpg)는 S3 적재 직후 사본을 지우므로(process_files) 여기서는
+        # 적재 확인에 실패해 남은 잔여분만 회수한다.
+        # XML 백업은 서버 root 스크립트(manager.sh)가 7일 기준으로 정리한다.
         remove_result = file_manager.remove_old_files(extensions=(".jpg",))
 
         combined_result = {
